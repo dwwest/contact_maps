@@ -1,0 +1,9 @@
+*.bed
+*.bed-
+*.bam
+*.pairs
+*.bigwig
+*.sam
+*.o
+*.out
+*.npy
