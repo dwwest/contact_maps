@@ -15,7 +15,7 @@ slice_two = sys.argv[2]
 last = sys.argv[3]
 
 pairs = []
-with open("granges_expanded-pubWTmESC-mapped-filt.pairs") as f:
+with open("intersected_GSM2418860_expanded-pubWTmESC-mapped-filt.pairs") as f:
     for line in f:
         current = line.strip('\n').split('\t')
         # filter out any pairs that are more than chromatin_len bp apart
@@ -32,7 +32,7 @@ elif last == True:
 print('Pairs loaded...')
 
 ctcf = {}
-with open("granges_expanded.bed") as f:
+with open("intersected_GSM2418860_expanded.bed") as f:
     for ind,line in enumerate(f):
         if ind > 0:
             current = line.strip('\n').split('\t')

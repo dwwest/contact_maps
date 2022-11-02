@@ -7,3 +7,6 @@
 *.o
 *.out
 *.npy
+*.bw
+*.txt.gz
+*.wig
