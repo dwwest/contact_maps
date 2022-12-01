@@ -4,4 +4,4 @@
 
 source activate microc
 
-bedtools intersect -a GSM2418860_WT_CTCF.bed -b granges_expanded.bed > intersected_GSM2418860_expanded.bed
+bedtools intersect -a GSM2418860_WT_CTCF_peaks.bed -b granges_expanded.bed > intersected_GSM2418860_expanded.bed

@@ -5,7 +5,11 @@ import matplotlib as mpl
 import glob
 import re
 import sys
+import os
+from scipy.signal import butter
+from scipy.signal import lfilter
 
+to_save_dir = '../../wlcsim/isd_input/micro-c_data/hsieh_ctcf/'
 cm_files = glob.glob('contact_map_*.npy')
 chrom_length = 1600
 
@@ -25,8 +29,68 @@ for i in range(3):
 # YELLOW = OUT
 # MAGENTA = TANDEM
 
-
 plt.imshow(to_plot)
 plt.savefig('heatmap.pdf')
 plt.show()
 
+to_bin = cm[260:1361,260:1361,:]
+bin_boundaries = [0, 150, 300, 350, 370, 520, 670, 820]
+ctcf_ind = 3
+binned_array = np.zeros([36, 4])
+ind = 0
+for inda in range(len(bin_boundaries)-1):
+    for indb in range(len(bin_boundaries)-1):
+        if not inda == 3 and not indb == 3:
+            for orient in range(4):
+                binned_array[ind, orient] = np.sum(to_bin[bin_boundaries[inda]:bin_boundaries[inda+1],\
+                    bin_boundaries[indb]:bin_boundaries[indb+1],orient])
+            ind += 1
+binned_array = np.reshape(binned_array, [6, 6, 4])
+to_plot_binned = np.zeros([6, 6, 3])
+to_plot_binned[:,:,0:2] = binned_array[:,:,0:2]
+to_plot_binned[:,:,2] = binned_array[:,:,2] + binned_array[:,:,3]
+max_contacts = np.max(to_plot_binned)
+to_plot_binned = 1-(to_plot_binned/max_contacts)
+plt.imshow(to_plot_binned)
+plt.savefig('binned_heatmap.pdf')
+plt.show()
+
+to_save = np.ravel(binned_array)
+if not os.path.isdir(to_save_dir):
+    os.mkdir(to_save_dir)
+with open(to_save_dir + '/data.txt', 'w+') as f:
+    for i in to_save:
+        f.write(str(i) + '\n')
+
+freqs_by_pos = np.zeros(chrom_length+1)
+for i, row in enumerate(cm):
+    for j, pos in enumerate(row):
+        freqs_by_pos[i] += np.sum(pos)
+        freqs_by_pos[j] += np.sum(pos)
+
+# lowpass filter
+cutoff = 0.1
+nyq = 0.5 * 1 # for 1bp
+normal_cutoff = cutoff / nyq
+b, a = butter(2, normal_cutoff, btype='low', analog=False)
+y = lfilter(b, a, freqs_by_pos)
+
+xs = [i for i in range(-801, 800)]
+plt.plot(xs, freqs_by_pos)
+plt.plot(xs, y)
+plt.vlines([-240-300, -240-150, -240, -90, 90, 240, 240+150, 240+300], [0, 0, 0], [40000, 40000, 40000], colors = ['r', 'r', 'r'])
+plt.xlabel('Fragment end position')
+plt.ylabel('Frequency')
+plt.title('CTCF Micro-C fragment end position frequencies')
+plt.savefig('ctcf_freqs_peaks.pdf')
+plt.show()
+
+xs = [i for i in range(-801, 800)]
+plt.plot(xs, freqs_by_pos)
+plt.plot(xs, y)
+plt.vlines([-160-300, -160-150, -160, -10, 10, 160, 160+150, 160+300], [0, 0, 0], [40000, 40000, 40000], colors = ['r', 'r', 'r'])
+plt.xlabel('Fragment end position')
+plt.ylabel('Frequency')
+plt.title('CTCF Micro-C fragment end position frequencies')
+plt.savefig('ctcf_freqs_bins.pdf')
+plt.show()

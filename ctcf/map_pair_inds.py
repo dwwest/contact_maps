@@ -43,6 +43,7 @@ with open("intersected_GSM2418860_expanded.bed") as f:
 print('Sites loaded...')
 
 current_chrom = ''
+wrap = 120
 contact_map = np.zeros([chromatin_len+1, chromatin_len+1, 4])
 for pair_ind, pair in enumerate(pairs):
     chrom_one = pairs[pair_ind][0][0]
@@ -61,16 +62,28 @@ for pair_ind, pair in enumerate(pairs):
                     if abs(site_one - site_two) >= 147:
                         """ INWARD """
                         if strand_one == '+' and strand_two == '-':
-                            contact_map[site_one - s, site_two - s, 0] += 1
+                            try:
+                                contact_map[site_one - s + wrap, site_two - s - wrap, 0] += 1
+                            except:
+                                break
                         """ OUTWARD """
                         if strand_one == '-' and strand_two == '+':
-                            contact_map[site_one - s, site_two - s, 1] += 1
+                            try:
+                                contact_map[site_one - s - wrap, site_two - s + wrap, 1] += 1
+                            except:
+                                break
                         """ TANDEM P """
                         if strand_one == '+' and strand_two == '+':
-                            contact_map[site_one - s, site_two - s, 2] += 1
+                            try:
+                                contact_map[site_one - s - wrap, site_two - s - wrap, 2] += 1
+                            except:
+                                break
                         """ TANDEM N """
                         if strand_one == '-' and strand_two == '-':
-                            contact_map[site_one - s, site_two - s, 3] += 1
+                            try:
+                                contact_map[site_one - s + wrap, site_two - s + wrap, 3] += 1
+                            except:
+                                break
                 # break will trigger both when site_one and site_two are both
                 # ind mapped, and also when site_one is in one TSS (as defined
                 # by chromatin_len) and site two is in another
