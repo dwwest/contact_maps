@@ -9,4 +9,3 @@ with open('GSM2418860_WT_CTCF_peaks.txt', 'r') as f:
 with open('GSM2418860_WT_CTCF_peaks.bed', 'w+') as f:
     for line in lines:
         f.write(line)
-

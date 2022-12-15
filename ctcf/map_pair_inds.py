@@ -56,37 +56,44 @@ for pair_ind, pair in enumerate(pairs):
         if chrom_one != current_chrom:
             current_chrom = chrom_one
             print(current_chrom)
+        # find which ctcf site from granges bed that the site aligns to
         for s in ctcf[chrom_one]:
-            if site_one >= s and site_one <= chromatin_len + s:
-                if site_two >= s and site_two <= chromatin_len + s:
-                    if abs(site_one - site_two) >= 147:
+            # check to make sure we are only looking at mononucleosomes
+            if abs(site_two - site_one) < 400:
+                # check if the first and second sites are both within the expanded ctcf area
+                if site_one >= s and site_one <= chromatin_len + s:
+                    if site_two >= s and site_two <= chromatin_len + s:
+                        # for in, out, and tandem, 
                         """ INWARD """
                         if strand_one == '+' and strand_two == '-':
-                            try:
+                            if chromatin_len >= site_one - s + wrap >= 0 and chromatin_len >= site_two - s - wrap >= 0:
                                 contact_map[site_one - s + wrap, site_two - s - wrap, 0] += 1
-                            except:
-                                break
                         """ OUTWARD """
                         if strand_one == '-' and strand_two == '+':
-                            try:
+                            if chromatin_len >= site_one - s - wrap >= 0 and chromatin_len >= site_two - s + wrap >= 0:
                                 contact_map[site_one - s - wrap, site_two - s + wrap, 1] += 1
-                            except:
-                                break
                         """ TANDEM P """
                         if strand_one == '+' and strand_two == '+':
-                            try:
-                                contact_map[site_one - s - wrap, site_two - s - wrap, 2] += 1
-                            except:
-                                break
+                            if chromatin_len >= site_one - s + wrap >= 0 and chromatin_len >= site_two - s + wrap >= 0:
+                                contact_map[site_one - s + wrap, site_two - s + wrap, 2] += 1
                         """ TANDEM N """
                         if strand_one == '-' and strand_two == '-':
-                            try:
-                                contact_map[site_one - s + wrap, site_two - s + wrap, 3] += 1
-                            except:
-                                break
-                # break will trigger both when site_one and site_two are both
-                # ind mapped, and also when site_one is in one TSS (as defined
-                # by chromatin_len) and site two is in another
-                break
+                            if chromatin_len >= site_one - s - wrap >= 0 and chromatin_len >= site_two - s - wrap >= 0:
+                                contact_map[site_one - s - wrap, site_two - s - wrap, 3] += 1
+                    # break will trigger both when site_one and site_two are both
+                    # ind mapped, and also when site_one is in one TSS (as defined
+                    # by chromatin_len) and site two is in another
+                    break
 
-np.save('contact_map_' + str(slice_one) + '.npy', contact_map)
+to_flip = np.zeros([chromatin_len + 1, chromatin_len + 1])
+for i in range(chromatin_len):
+    for j in range(i+1, chromatin_len+1):
+        to_flip[i, j] = 1
+
+to_save = np.zeros(np.shape(contact_map))
+for i in range(4):
+    to_add = np.multiply(to_flip, contact_map[:,:,i])
+    to_save[:,:,i] = np.flip(np.flip(to_add, 1), 0) + contact_map[:,:,i]
+    flattening = np.flip(np.flip(to_flip, 1), 0)
+    to_save[:,:,i] = np.multiply(flattening, to_save[:,:,i])
+np.save('contact_map_' + str(slice_one) + '.npy', to_save)
