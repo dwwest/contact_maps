@@ -8,7 +8,7 @@ import sys
 import os
 
 input_dir = '/rugpfs/fs0/risc_lab/scratch/dwest/isd_wlcsim/workspace/isd_rise_per_nuc_micro-c/wlcsim/input/'
-lls = [23., 23., 23., 93., 23., 23., 23.]
+lls = [33., 33., 33., 200., 33., 33., 33.]
 discs = [i/4 for i in lls]
 
 with open(input_dir + 'ctcf', 'w+') as f:
